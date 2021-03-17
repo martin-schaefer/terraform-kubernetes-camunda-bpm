@@ -36,6 +36,7 @@ resource "kubernetes_deployment" "deployment" {
     labels = {
       "app.kubernetes.io/name" = var.name
       "app.kubernetes.io/version" = var.tag
+      "app.kubernetes.io/managed-by" = "terraform"
     }
   }
 
@@ -53,6 +54,7 @@ resource "kubernetes_deployment" "deployment" {
         labels = {
           "app.kubernetes.io/name" = var.name
           "app.kubernetes.io/version" = var.tag
+          "app.kubernetes.io/managed-by" = "terraform"
         }
       }
 
@@ -61,20 +63,22 @@ resource "kubernetes_deployment" "deployment" {
         container {
           name  = var.name
           image = "camunda/camunda-bpm-platform:run-${var.tag}"
-
+          env {
+            name = "JAVA_TOOL_OPTIONS"
+            value = "-XX:MaxRAMPercentage=70.0 -XX:+PrintFlagsFinal -Dspring.application.name=${var.name}"
+          }
           port {
-            name           = "http"
+            name           = "http-service"
             container_port = 8080
           }
-
           resources {
-            requests = {
-              cpu = "100m"
-              memory = "1000Mi"
+            requests {
+              cpu    = "0.1"
+              memory = "1Gi"
             }
-            limits = {
-              cpu = "2000m"
-              memory = "2000Mi"
+            limits {
+              cpu    = "4"
+              memory = "2Gi"
             }
           }
         }
@@ -87,22 +91,20 @@ resource "kubernetes_service" "service" {
   metadata {
     name = var.name
     namespace = var.namespace
-
     labels = {
       "app.kubernetes.io/name" = var.name
       "app.kubernetes.io/version" = var.tag
+      "app.kubernetes.io/managed-by" = "terraform"
     }
   }
-
   spec {
+    type = "ClusterIP"
     selector = {
       "app.kubernetes.io/name" = var.name
     }
     port {
-      name = "http"
+      name = "http-service"
       port = 8080
     }
   }
 }
-
-
