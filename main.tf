@@ -1,9 +1,9 @@
 terraform {
-  required_version = ">= 0.13"
+  required_version = ">= 0.14.8"
   required_providers {
     kubernetes = {
       source = "hashicorp/kubernetes"
-      version = ">= 1.13.3"
+      version = ">= 2.0.3"
     }
   }
 }
@@ -20,7 +20,7 @@ variable "namespace" {
 
 variable "tag" {
   type = string
-  default = "7.14.0"
+  default = "7.15.0"
 }
 
 variable "replicas" {
@@ -72,11 +72,11 @@ resource "kubernetes_deployment" "deployment" {
             container_port = 8080
           }
           resources {
-            requests {
+            requests = {
               cpu    = "0.1"
               memory = "1Gi"
             }
-            limits {
+            limits = {
               cpu    = "4"
               memory = "2Gi"
             }
